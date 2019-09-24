@@ -17,14 +17,15 @@ exports.create = (text, callback) => {
 
   counter.getNextUniqueId((err, newId) => {
     let id = newId;
-    console.log(id, 'this is id');
+    //console.log(id, 'this is id');
     items[id] = text;
-    callback(null, { id, text });
-    fs.writeFile(`/${id}.txt`, text, function(err) {
+    console.log(text,' this is text');
+    fs.writeFile(`./test/testData/${id}.txt`, text.toString(), function(err) {
       if (err) {
         throw err;
       }
     });
+    callback(null, { id, text });
     //need to write new file for created toDo
   });
 
@@ -33,6 +34,10 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
+  //console.log(fs.readdirSync('./test/testData').length )
+  if (fs.readdirSync('./test/testData').length === 0) {
+    return [];
+  }
   var data = _.map(items, (text, id) => {
     return { id, text };
   });
@@ -60,11 +65,19 @@ exports.update = (id, text, callback) => {
 
 exports.delete = (id, callback) => {
   var item = items[id];
+  console.log(id, 'this is id')
+  console.log(item, 'text content')
   delete items[id];
+
   if (!item) {
     // report an error if item not found
     callback(new Error(`No item with id: ${id}`));
   } else {
+    fs.unlink(`./test/testData/${id}.txt`, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
     callback();
   }
 };
