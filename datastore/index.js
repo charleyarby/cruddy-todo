@@ -19,38 +19,52 @@ exports.create = (text, callback) => {
     let id = newId;
     //console.log(id, 'this is id');
     items[id] = text;
-    console.log(text,' this is text');
-    fs.writeFile(`./test/testData/${id}.txt`, text.toString(), function(err) {
+    //console.log(text,' this is text');
+    fs.writeFile(`${exports.dataDir}/${id}.txt`, text.toString(), function(err) {
       if (err) {
         throw err;
+      } else {
+        callback(null, { id, text });
       }
     });
-    callback(null, { id, text });
     //need to write new file for created toDo
   });
-
-
-
 };
 
 exports.readAll = (callback) => {
-  //console.log(fs.readdirSync('./test/testData').length )
-  if (fs.readdirSync('./test/testData').length === 0) {
-    return [];
-  }
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+
+  fs.readdir(exports.dataDir, (err, files) => {
+    if (err) {
+      throw ('there was an error');
+    } else {
+      // console.log(items, ' this is item');
+      // console.log(files, 'this is files');
+      var data = _.map(files, (file) => {
+        let id = file.slice(0, file.indexOf('.'));
+        return { id, text: id };
+      }
+      );
+      callback(null, data);
+    }
   });
-  callback(null, data);
+
 };
+
 
 exports.readOne = (id, callback) => {
   var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+
+  fs.readFile(`${exports.dataDir}/${id}.txt`, 'utf8', (err, data) => {
+    console.log(err);
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, { id, text: data });
+    }
+  });
+
+
+
 };
 
 exports.update = (id, text, callback) => {
@@ -58,15 +72,22 @@ exports.update = (id, text, callback) => {
   if (!item) {
     callback(new Error(`No item with id: ${id}`));
   } else {
-    items[id] = text;
-    callback(null, { id, text });
+    fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
+      if (err) {
+        throw ('there was an error');
+      } else {
+        items[id] = text;
+        callback(null, { id, text });
+      }
+    });
+
   }
 };
 
 exports.delete = (id, callback) => {
   var item = items[id];
-  console.log(id, 'this is id')
-  console.log(item, 'text content')
+  //console.log(id, 'this is id');
+  //console.log(item, 'text content');
   delete items[id];
 
   if (!item) {
