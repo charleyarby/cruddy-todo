@@ -39,17 +39,30 @@ exports.readAll = (callback) => {
     } else {
       // console.log(items, ' this is item');
       // console.log(files, 'this is files');
-      var data = _.map(files, (file) => {
+      var promises = _.map(files, (file) => {
         let id = file.slice(0, file.indexOf('.'));
-        return { id, text: id };
-      }
-      );
-      callback(null, data);
+        return new Promise ((resolve, reject) => {
+          exports.readOne(id, (err, todo) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(todo);
+            }
+          });
+        });
+      });
+      console.log(promises, 'this is promisesArray');
+      let todoArr = Promise.all(promises).then((promisesArr) => {
+        callback(null, promisesArr);
+      });
     }
   });
-
 };
 
+
+
+
+// return { id, text: id };
 
 exports.readOne = (id, callback) => {
   var text = items[id];
